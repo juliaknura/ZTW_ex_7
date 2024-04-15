@@ -3,6 +3,10 @@ import { createSchema, createYoga } from 'graphql-yoga'
 import { readFileSync } from 'node:fs';
 import { gql } from 'graphql-tag';
 import axios from 'axios';
+import repository, { getUserById } from './Repository.cjs';
+
+const { createUser, updateUser, deleteUser, createTodoItem, updateTodoItem, deleteTodoItem, getUserByTodoId } = repository;
+
 
 const typeDefs = readFileSync('./src/schema.graphql', 'utf8');
 
@@ -76,23 +80,41 @@ const yoga = createYoga({
   schema: createSchema({
     typeDefs: gql(typeDefs),
     resolvers: {
-    Query: {
-        demo: () => 'Witaj, GraphQL działa!',
-        users: async () => getRestUsersList(), 
-        todos: async () => getRestTodosList(),
-        todo: async (parent, args, context, info) => getRestTodoById(args.id),
-        user: async (parent, args, context, info) => getRestUserById(args.id),
-    },
-    User: {
-        todos: async (parent, args, context, info) => {
-            return (await getRestTodosList()).filter(t => t.userID == parent.id);
-        } 
-    },
-    ToDoItem:{
-        user: async (parent, args, context, info) => {
-            return await getRestUserById(parent.userID);
-        }
-    }, 
+        Query: {
+            demo: () => 'Witaj, GraphQL działa!',
+            users: async () => getRestUsersList(), 
+            todos: async () => getRestTodosList(),
+            todo: async (parent, args, context, info) => getRestTodoById(args.id),
+            user: async (parent, args, context, info) => getRestUserById(args.id),
+            usersDB: async () => repository.getUsers(),
+            todosDB: async () => repository.getTodos(),
+            todoDB: async (parent, args, context, info) => repository.getTodoById(args.id),
+            userDB: async (parent, args, context, info) => repository.getUserById(args.id)
+        },
+        User: {
+            todos: async (parent, args, context, info) => {
+                return (await getRestTodosList()).filter(t => t.userID == parent.id);
+            },
+            todosDB: async (parent, args, context, info) => {
+                return (await repository.getTodoByUserId(parent.id))
+            }
+        },
+        ToDoItem:{
+            user: async (parent, args, context, info) => {
+                return await getRestUserById(parent.userID);
+            },
+            userDB: async (parent, args, context, info) => {
+                return (await repository.getUserByTodoId(parent.userID));
+            }
+        }, 
+        Mutation: {
+            createUser: async (parent, { name, email, login }) => createUser(name, email, login),
+            updateUser: async (parent, { id, name, email, login }) => updateUser(id, name, email, login),
+            deleteUser: async (parent, { id }) => deleteUser(id),
+            createTodoItem: async (parent, { title, completed, userID }) => createTodoItem(title, completed, userID),
+            updateTodoItem: async (parent, { id, title, completed, userID }) => updateTodoItem(id, title, completed, userID),
+            deleteTodoItem: async (parent, { id }) => deleteTodoItem(id),
+        },
     }
   })
 })

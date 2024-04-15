@@ -3,6 +3,7 @@ type ToDoItem{
     title: String!
     completed: Boolean!
     user: User!
+    userDB: User!
     userID: ID!
 }
 
@@ -12,6 +13,7 @@ type User{
     email: String! 
     login: String!
     todos: [ToDoItem!]!
+    todosDB: [ToDoItem!]!
 }
 
 type Query {
@@ -20,6 +22,18 @@ type Query {
     todo(id: ID!): ToDoItem
     users: [User!]
     user(id: ID!): User
+    todosDB: [ToDoItem!]
+    todoDB(id: ID!): ToDoItem
+    usersDB: [User!]
+    userDB(id: ID!): User
 }
 
+type Mutation {
+  createUser(name: String!, email: String!, login: String!): ID!
+  updateUser(id: ID!, name: String!, email: String!, login: String!): ID!
+  deleteUser(id: ID!): ID!
+  createTodoItem(title: String!, completed: Boolean!, userID: ID!): ID!
+  updateTodoItem(id: ID!, title: String!, completed: Boolean!, userID: ID!): ID!
+  deleteTodoItem(id: ID!): ID!
+}
 
