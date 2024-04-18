@@ -103,6 +103,9 @@ const yoga = createYoga({
         }, 
         UserDB: {
             todosDB: async (parent, args, context, info) => {
+                if (!parent.id) {
+                    return []
+                }
                 return (await repository.getTodoByUserId(parent.id))
             }
         },
