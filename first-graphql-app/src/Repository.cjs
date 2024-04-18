@@ -47,21 +47,19 @@ async function deleteTodoItem(id) {
 
 async function getUsers() {
     const query = `
-        SELECT u.*, t.*
+        SELECT u.id, u.name, u.login, u.email, t.*
         FROM "User" u
         LEFT JOIN ToDoItem t ON u.id = t.user_id
     `;
     const result = await client.query(query);
-
-    // Group todos by user ID
     const todosByUser = result.rows.reduce((acc, row) => {
         const userID = row.id;
         if (!acc[userID]) {
             acc[userID] = {
-                id: row.id,
-                name: row.name,
-                email: row.email,
-                login: row.login,
+                id: row.id || '',
+                name: row.name || '',
+                email: row.email || '',
+                login: row.login || '',
                 todos: []
             };
         }
@@ -88,10 +86,10 @@ async function getUserById(id) {
     const result = await client.query(query, [id]);
 
     const todosByUser = result.rows.reduce((acc, row) => {
-        const userID = row.id;
+        const userID = row.user_id;
         if (!acc[userID]) {
             acc[userID] = {
-                id: row.id,
+                id: row.user_id,
                 name: row.name,
                 email: row.email,
                 login: row.login,
@@ -100,7 +98,7 @@ async function getUserById(id) {
         }
         if (row.todo_id) {
             acc[userID].todos.push({
-                id: row.todo_id,
+                id: row.id,
                 title: row.title,
                 completed: row.completed
             });
@@ -114,15 +112,24 @@ async function getUserById(id) {
 
   
 async function getTodos() {
-    const query = 'SELECT * FROM ToDoItem';
+    const query = `
+        SELECT t.*, u.id AS user_id, u.name AS user_name, u.email AS user_email, u.login AS user_login
+        FROM ToDoItem t
+        LEFT JOIN "User" u ON t.user_id = u.id`;
     const result = await client.query(query);
     return result.rows.map(row => ({
         id: row.id,
         title: row.title,
         completed: row.completed,
-        userID: row.user_id 
+        user: {
+            id: row.user_id,
+            name: row.user_name,
+            email: row.user_email,
+            login: row.user_login
+        }
     }));
 }
+
   
 async function getTodoById(id) {
     const query = 'SELECT * FROM ToDoItem WHERE id = $1';
@@ -143,7 +150,7 @@ async function getTodoByUserId(id) {
     const query = 'SELECT * FROM ToDoItem WHERE user_id = $1';
     const result = await client.query(query, [id]);
     if (!result.rows || result.rows.length === 0) {
-        return null; 
+        return [];
     }
     return result.rows.map(row => ({
         id: row.id,
@@ -153,22 +160,21 @@ async function getTodoByUserId(id) {
     }));
 }
 
-
 async function getUserByTodoId(id) {
     const query = `
         SELECT u.*, t.*
         FROM "User" u
-        LEFT JOIN ToDoItem t ON u.id = t.user_id
-        WHERE u.id = $1
+        RIGHT JOIN ToDoItem t ON u.id = t.user_id
+        WHERE t.id = $1
     `;
     const result = await client.query(query, [id]);
 
     const todosByUser = result.rows.reduce((acc, row) => {
-        const userID = row.id;
+        const userID = row.user_id;
         if (!acc[userID]) {
             acc[userID] = {
                 id: row.id,
-                name: row.name || '', // Return an empty string if name is null
+                name: row.name || '',
                 email: row.email,
                 login: row.login,
                 todos: []
@@ -185,7 +191,7 @@ async function getUserByTodoId(id) {
     }, {});
 
     const userWithTodos = Object.values(todosByUser)[0];
-    return userWithTodos ? userWithTodos : null; 
+    return userWithTodos ? userWithTodos : {}; 
 }
 
 

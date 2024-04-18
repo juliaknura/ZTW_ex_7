@@ -3,7 +3,6 @@ type ToDoItem{
     title: String!
     completed: Boolean!
     user: User!
-    userDB: User!
     userID: ID!
 }
 
@@ -13,7 +12,22 @@ type User{
     email: String! 
     login: String!
     todos: [ToDoItem!]!
-    todosDB: [ToDoItem!]!
+}
+
+type ToDoItemDB{
+    id: ID!
+    title: String!
+    completed: Boolean!
+    userDB: UserDB!
+    userID: ID!
+}
+
+type UserDB{
+    id: ID!
+    name: String!
+    email: String! 
+    login: String!
+    todosDB: [ToDoItemDB!]
 }
 
 type Query {
@@ -22,10 +36,10 @@ type Query {
     todo(id: ID!): ToDoItem
     users: [User!]
     user(id: ID!): User
-    todosDB: [ToDoItem!]
-    todoDB(id: ID!): ToDoItem
-    usersDB: [User!]
-    userDB(id: ID!): User
+    todosDB: [ToDoItemDB!]
+    todoDB(id: ID!): ToDoItemDB
+    usersDB: [UserDB!]
+    userDB(id: ID!): UserDB
 }
 
 type Mutation {

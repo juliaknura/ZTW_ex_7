@@ -95,20 +95,24 @@ const yoga = createYoga({
             todos: async (parent, args, context, info) => {
                 return (await getRestTodosList()).filter(t => t.userID == parent.id);
             },
-            todosDB: async (parent, args, context, info) => {
-                return (await repository.getTodoByUserId(parent.id))
-            }
         },
         ToDoItem:{
             user: async (parent, args, context, info) => {
                 return await getRestUserById(parent.userID);
-            },
-            userDB: async (parent, args, context, info) => {
-                return (await repository.getUserByTodoId(parent.userID));
             }
         }, 
+        UserDB: {
+            todosDB: async (parent, args, context, info) => {
+                return (await repository.getTodoByUserId(parent.id))
+            }
+        },
+        ToDoItemDB: {
+            userDB: async (parent, args, context, info) => {
+                return (await repository.getUserByTodoId(parent.id));
+            }
+        },
         Mutation: {
-            createUser: async (parent, { name, email, login }) => createUser(name, email, login),
+            createUser: async (parent, { name, email, login }) => repository.createUser(name, email, login),
             updateUser: async (parent, { id, name, email, login }) => updateUser(id, name, email, login),
             deleteUser: async (parent, { id }) => deleteUser(id),
             createTodoItem: async (parent, { title, completed, userID }) => createTodoItem(title, completed, userID),
