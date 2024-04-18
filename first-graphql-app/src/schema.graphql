@@ -14,12 +14,40 @@ type User{
     todos: [ToDoItem!]!
 }
 
+type ToDoItemDB{
+    id: ID!
+    title: String!
+    completed: Boolean!
+    userDB: UserDB!
+    userID: ID!
+}
+
+type UserDB{
+    id: ID!
+    name: String!
+    email: String! 
+    login: String!
+    todosDB: [ToDoItemDB!]
+}
+
 type Query {
     demo: String!
     todos: [ToDoItem!]
     todo(id: ID!): ToDoItem
     users: [User!]
     user(id: ID!): User
+    todosDB: [ToDoItemDB!]
+    todoDB(id: ID!): ToDoItemDB
+    usersDB: [UserDB!]
+    userDB(id: ID!): UserDB
 }
 
+type Mutation {
+  createUser(name: String!, email: String!, login: String!): ID!
+  updateUser(id: ID!, name: String!, email: String!, login: String!): ID!
+  deleteUser(id: ID!): ID!
+  createTodoItem(title: String!, completed: Boolean!, userID: ID!): ID!
+  updateTodoItem(id: ID!, title: String!, completed: Boolean!, userID: ID!): ID!
+  deleteTodoItem(id: ID!): ID!
+}
 
